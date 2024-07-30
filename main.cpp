@@ -67,14 +67,24 @@ void merge(string dir, int cant)
 
     int len = imgs[0].width * imgs[0].height;
 
+    double factor = 65536. / imgs[0].whiteLevel;
+
 #pragma omp parallel for
     for (int x = 0; x < len; x++)
     {
         double v = 0;
         for (int idx = 0; idx < cant; idx++)
-            v += (double)imgs[idx].data[x];
+            v += ((double)imgs[idx].data[x]) * factor;
+
         outDngd[x] = (uint16_t)(v / cant);
     }
+
+    imgs[0].whiteLevel = 65535;
+    imgs[0].blackLevel[0] = imgs[0].blackLevel[0] * (uint32_t)factor;
+    imgs[0].blackLevel[1] = imgs[0].blackLevel[1] * (uint32_t)factor;
+    imgs[0].blackLevel[2] = imgs[0].blackLevel[2] * (uint32_t)factor;
+    imgs[0].blackLevel[3] = imgs[0].blackLevel[3] * (uint32_t)factor;
+
 
     imgs[0].data = outDngd;
     cout << "writing dng" << endl;
