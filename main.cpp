@@ -11,15 +11,15 @@
 
 using namespace std;
 
-
-
-bool checkFile(string fileDir){
+bool checkFile(string fileDir)
+{
     ifstream file;
     file.open(fileDir.c_str());
     return file.good();
 }
 
-bool checkPath(string path){
+bool checkPath(string path)
+{
     return filesystem::exists(path);
 }
 
@@ -28,44 +28,60 @@ void merge(string dir, int cant)
     DngImg *imgs = new DngImg[cant];
 
     cout << "opening images" << endl;
+    cout << dir + "/f _.dng" << endl;
 
     int format = -1;
-    if (checkFile(dir + "/f0.dng"))
+    if (checkFile(dir + "f0.dng"))
         format = 0;
-    else if (checkFile(dir + "/f (1).dng"))
+    else if (checkFile(dir + "f (1).dng"))
         format = 1;
-    else{
+    else
+    {
         cerr << "dngs not found" << endl;
         throw new runtime_error("dngs not found");
     }
+    if (format == 0)
+        cout << "format: fx.dng" << endl;
+    else
+        cout << "format: fx (1).dng" << endl;
 
-    for (int i = 0; i < cant; ++i){
-        if(format == 0){
-
-            imgs[i] = dngRead(dir + "/f" + to_string(i) + ".dng");
+    for (int i = 0; i < cant; ++i)
+    {
+        string fil;
+        if (format == 0)
+            fil = dir + "f" + to_string(i) + ".dng";
+        else if (format == 1)
+            fil = dir + "f (" + to_string(i + 1) + ").dng";
+        if (!checkFile(fil))
+        {
+            cerr << fil << " not found" << endl;
+            throw new runtime_error("dng not found");
         }
-        else if (format == 1){
 
-            imgs[i] = dngRead(dir + "/f (" + to_string(i + 1) + ").dng");
-        }
+        imgs[i] = dngRead(fil);
     }
 
-    
+    cout << "merging" << endl;
 
     uint16_t *outDngd = new uint16_t[imgs[0].width * imgs[0].height * 4];
 
-    
-    for (int x = 0; x < imgs[0].width * imgs[0].height * 4; x++)
+    int len = imgs[0].width * imgs[0].height;
+
+#pragma omp parallel for
+    for (int x = 0; x < len; x++)
     {
         double v = 0;
         for (int idx = 0; idx < cant; idx++)
             v += (double)imgs[idx].data[x];
         outDngd[x] = (uint16_t)(v / cant);
     }
-    
+
     imgs[0].data = outDngd;
     cout << "writing dng" << endl;
     dngWrite(imgs[0], dir + "/dngout.dng");
+
+    // F:\stacks\stack78
+    // F:/stacks/stack78/
 
     // uint8_t *process = raw2rgb(img);
     // string outDir = dir + "/out.png";
@@ -81,13 +97,15 @@ void merge(string dir, int cant)
 
 int main()
 {
-
+    cout << "syntaxis (F:/photos/dngs/ 10)" << endl;
     string dir;
     int num;
     cin >> dir;
     cin >> num;
 
+    cout << "merge " << dir << " " << num << endl;
+
     merge(dir, num);
-    
+
     return 0;
 }
