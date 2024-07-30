@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.6.0)
 
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 
 file (GLOB zlib_HDRS
         ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h)
@@ -11,6 +13,8 @@ add_library(zlib STATIC ${zlib_SRCS} ${zlib_HDRS})
 target_include_directories(zlib PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         )
+
+
 
 # install
 # install(TARGETS zlib
